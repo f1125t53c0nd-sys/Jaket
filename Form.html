@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title><?= judul ?></title>
+<style>
+:root{--pk:#ff9ec4;--pk2:#ffd6e7;--yl:#ffe27a;--yl2:#fff6c9;--tx:#4a3540;--bg:#fffaf5}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;color:var(--tx);min-height:100vh;
+background:radial-gradient(circle at 0 0,var(--pk2),transparent 45%),radial-gradient(circle at 100% 15%,var(--yl2),transparent 40%),var(--bg)}
+.wrap{max-width:640px;margin:0 auto;padding:18px 14px 60px}
+.hero{text-align:center;padding:26px 16px;border-radius:28px;background:linear-gradient(135deg,var(--pk2),var(--yl2));box-shadow:0 10px 30px rgba(255,158,196,.28);animation:pop .6s ease}
+.hero .ic{font-size:48px;display:inline-block;animation:float 3s ease-in-out infinite}
+.hero h1{margin:6px 0;font-size:24px}.hero p{margin:0;font-size:14px;opacity:.8}
+.nav{display:inline-block;margin-top:12px;padding:8px 16px;border-radius:99px;background:#fff;color:var(--tx);text-decoration:none;font-size:13px;font-weight:600;box-shadow:0 3px 10px rgba(0,0,0,.08)}
+.bar{height:8px;background:#fff;border-radius:9px;margin:16px 0;overflow:hidden;position:sticky;top:6px;z-index:5;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pk),var(--yl));transition:width .4s}
+.card{background:#fff;border-radius:22px;padding:18px;margin:14px 0;box-shadow:0 6px 20px rgba(255,158,196,.18);animation:pop .5s both}
+h3{margin:0 0 12px;font-size:16px}small{color:#8a7480}
+.t,select{width:100%;padding:12px 14px;border:2px solid var(--pk2);border-radius:14px;font-size:15px;background:#fffdfa;color:var(--tx);outline:none;transition:border .2s}
+.t:focus,select:focus{border-color:var(--pk)}.t+.t{margin-top:8px}.hide{display:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px}.chips input{display:none}
+.chips span{display:inline-block;padding:9px 14px;border-radius:99px;background:var(--yl2);font-size:14px;cursor:pointer;transition:.2s;border:2px solid transparent}
+.chips span:hover{transform:translateY(-2px)}
+.chips input:checked+span{background:linear-gradient(135deg,var(--pk),#ffb7d5);color:#fff;font-weight:600;box-shadow:0 4px 12px rgba(255,158,196,.5)}
+.stars span{font-size:38px;color:#eadfe3;cursor:pointer;transition:.15s;display:inline-block}
+.stars span.on{color:var(--yl);transform:scale(1.1);text-shadow:0 2px 6px rgba(255,200,0,.4)}
+button{width:100%;padding:15px;border:0;border-radius:18px;font-size:17px;font-weight:700;color:var(--tx);cursor:pointer;background:linear-gradient(135deg,var(--pk),var(--yl));box-shadow:0 8px 20px rgba(255,158,196,.4);transition:.2s}
+button:hover{transform:translateY(-2px)}button:disabled{opacity:.6}
+#msg{color:#d6336c;text-align:center;font-size:14px;margin:10px 0;min-height:18px}
+.thanks{text-align:center;padding:40px 20px}.thanks .ic{font-size:64px}
+@keyframes pop{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes float{50%{transform:translateY(-6px) rotate(-4deg)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head>
+<body><div class="wrap">
+<div class="hero"><div class="ic">🧥</div><h1><?= judul ?></h1>
+<p>Cuma ±2 menit! Ceritain jaket favoritmu ya 💖</p>
+<a class="nav" href="<?= baseUrl ?>?page=hasil" target="_top">📊 Lihat Hasil Survei</a></div>
+
+<div id="formArea">
+<div class="bar"><i id="prog"></i></div>
+<div id="qs"></div>
+<div id="msg"></div>
+<button id="btn" onclick="kirim()">Kirim Jawaban 💌</button>
+</div>
+
+<div id="thanks" class="card thanks hide"><div class="ic">🎉</div><h2>Makasih sudah mengisi!</h2>
+<p>Jawabanmu sudah tersimpan.</p>
+<a class="nav" href="<?= baseUrl ?>?page=hasil" target="_top">📊 Lihat Hasil Survei</a></div>
+</div>
+
+<script>
+const Q=[
+{id:"nama",t:"Nama panggilan (boleh dikosongkan)",type:"text",ph:"contoh: Rani"},
+{id:"brand",t:"Brand jaket yang paling sering kamu pakai? *",type:"select",opt:["Nike","Adidas","Uniqlo","H&M","Zara","Levi's","The North Face","Eiger","Consina","Distro / brand lokal","Tanpa merek / thrift"]},
+{id:"jenis",t:"Jenis jaket yang paling sering dipakai? *",type:"radio",opt:["Hoodie","Sweater / Crewneck","Bomber","Jaket Jeans","Varsity","Windbreaker / Parasut","Jaket Kulit","Cardigan / Outer Rajut","Lainnya"]},
+{id:"model",t:"Model / tipe jaketnya? (opsional)",type:"text",ph:"contoh: Hoodie oversize hitam"},
+{id:"lama",t:"Sudah berapa lama punya jaket ini? *",type:"radio",opt:["< 3 bulan","3-6 bulan","6-12 bulan","1-2 tahun","> 2 tahun"]},
+{id:"harga",t:"Rentang harga jaketnya? *",type:"radio",opt:["< Rp100.000","Rp100.000 - 250.000","Rp250.000 - 500.000","Rp500.000 - 1.000.000","> Rp1.000.000"]},
+{id:"alasan",t:"Kenapa pilih brand itu? (boleh lebih dari 1)",type:"check",opt:["Desain / model bagus","Kualitas bahan","Harga terjangkau","Nyaman dipakai","Lagi tren / viral","Rekomendasi teman","Promo / diskon","Reputasi brand"]},
+{id:"faktor",t:"Yang paling penting saat pilih jaket? (maks. 3)",type:"check",max:3,opt:["Bahan (adem / hangat)","Desain","Harga","Ukuran pas","Awet","Warna","Tahan air / angin","Brand"]},
+{id:"pakai",t:"Seberapa sering pakai jaket? *",type:"radio",opt:["Setiap hari","Beberapa kali seminggu","Seminggu sekali","Beberapa kali sebulan","Jarang sekali"]},
+{id:"beli",t:"Seberapa sering beli jaket baru? *",type:"radio",opt:["Setiap bulan","Tiap 3-6 bulan","Setahun sekali","Beberapa tahun sekali","Baru pertama kali"]},
+{id:"tempat",t:"Biasanya beli jaket di mana? (boleh lebih dari 1)",type:"check",opt:["Marketplace (Shopee, Tokopedia, dll)","Toko resmi brand","Mall","Distro / toko lokal","Thrift","Live / toko sosmed (IG, TikTok)","Lainnya"]},
+{id:"kepuasan",t:"Seberapa puas dengan jaketmu? *",type:"star"},
+{id:"belilagi",t:"Bakal beli brand yang sama lagi? *",type:"radio",opt:["Ya, pasti","Mungkin","Tidak"]}
+];
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+const box=document.getElementById("qs");
+Q.forEach((q,i)=>{
+ let h=`<div class="card" style="animation-delay:${i*0.05}s"><h3>${i+1}. ${esc(q.t)}</h3>`;
+ if(q.type=="text") h+=`<input class="t" id="${q.id}" maxlength="60" placeholder="${q.ph}">`;
+ else if(q.type=="select") h+=`<select id="${q.id}"><option value="">-- pilih brand --</option>${q.opt.map(o=>`<option>${esc(o)}</option>`).join("")}<option value="__lain">Lainnya...</option></select><input class="t hide" id="${q.id}Lain" maxlength="40" placeholder="Tulis nama brand-nya">`;
+ else if(q.type=="star") h+=`<div class="stars" id="${q.id}">${[1,2,3,4,5].map(n=>`<span data-v="${n}">★</span>`).join("")}</div><small>1 = kurang puas, 5 = puas banget</small>`;
+ else h+=`<div class="chips" id="${q.id}">${q.opt.map(o=>`<label><input type="${q.type=="check"?"checkbox":"radio"}" name="${q.id}" value="${esc(o)}"><span>${esc(o)}</span></label>`).join("")}</div>`;
+ box.insertAdjacentHTML("beforeend",h+"</div>");
+});
+document.getElementById("brand").addEventListener("change",e=>{
+ document.getElementById("brandLain").classList.toggle("hide",e.target.value!="__lain");update();});
+document.querySelectorAll(".stars span").forEach(s=>s.addEventListener("click",()=>{
+ const p=s.parentNode;p.dataset.v=s.dataset.v;
+ p.querySelectorAll("span").forEach(x=>x.classList.toggle("on",+x.dataset.v<=+s.dataset.v));update();}));
+Q.filter(q=>q.max).forEach(q=>document.getElementById(q.id).addEventListener("change",e=>{
+ if(document.querySelectorAll("#"+q.id+" input:checked").length>q.max){e.target.checked=false;
+ document.getElementById("msg").textContent="Maksimal "+q.max+" pilihan ya 😊";}}));
+box.addEventListener("input",update);box.addEventListener("change",update);
+
+function ambil(){
+ const d={};
+ Q.forEach(q=>{
+  const el=document.getElementById(q.id);
+  if(q.type=="text") d[q.id]=el.value.trim();
+  else if(q.type=="select") d[q.id]=el.value=="__lain"?document.getElementById(q.id+"Lain").value.trim():el.value;
+  else if(q.type=="star") d[q.id]=el.dataset.v||"";
+  else{const v=[...el.querySelectorAll("input:checked")].map(x=>x.value);d[q.id]=q.type=="check"?v:(v[0]||"");}
+ });
+ return d;
+}
+function update(){
+ const d=ambil(),w=["brand","jenis","lama","harga","pakai","beli","kepuasan","belilagi"];
+ document.getElementById("prog").style.width=(w.filter(k=>d[k]).length/w.length*100)+"%";
+ document.getElementById("msg").textContent="";
+}
+function kirim(){
+ const btn=document.getElementById("btn"),msg=document.getElementById("msg");
+ btn.disabled=true;btn.textContent="Mengirim...";
+ const balik=t=>{msg.textContent=t;btn.disabled=false;btn.textContent="Kirim Jawaban 💌";};
+ google.script.run
+  .withSuccessHandler(r=>{
+   if(!r.ok) return balik(r.pesan);
+   document.getElementById("formArea").classList.add("hide");
+   document.getElementById("thanks").classList.remove("hide");window.scrollTo(0,0);})
+  .withFailureHandler(e=>balik("Gagal mengirim: "+e.message))
+  .simpanJawaban(ambil());
+}
+</script></body></html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hasil - <?= judul ?></title>
+<style>
+:root{--pk:#ff9ec4;--pk2:#ffd6e7;--yl:#ffe27a;--yl2:#fff6c9;--tx:#4a3540;--bg:#fffaf5}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;color:var(--tx);min-height:100vh;
+background:radial-gradient(circle at 0 0,var(--pk2),transparent 45%),radial-gradient(circle at 100% 15%,var(--yl2),transparent 40%),var(--bg)}
+.wrap{max-width:900px;margin:0 auto;padding:18px 14px 60px}
+.hero{text-align:center;padding:24px 16px;border-radius:28px;background:linear-gradient(135deg,var(--pk2),var(--yl2));box-shadow:0 10px 30px rgba(255,158,196,.28);animation:pop .6s ease}
+.hero .ic{font-size:44px;display:inline-block;animation:float 3s ease-in-out infinite}
+.hero h1{margin:4px 0;font-size:24px}.hero p{margin:0;font-size:13px;opacity:.8}
+.btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.nav{padding:9px 16px;border-radius:99px;background:#fff;color:var(--tx);text-decoration:none;font-size:13px;font-weight:600;border:0;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.08);font-family:inherit}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:16px 0}
+.stat{background:#fff;border-radius:20px;padding:16px;text-align:center;box-shadow:0 6px 20px rgba(255,158,196,.18);animation:pop .5s both}
+.stat b{display:block;font-size:26px;margin:4px 0}.stat small,.card small{color:#8a7480}
+.win{background:linear-gradient(135deg,#fff,var(--yl2))}.win b{font-size:17px}
+.card{background:#fff;border-radius:22px;padding:18px;margin:14px 0;box-shadow:0 6px 20px rgba(255,158,196,.18);animation:pop .5s both}
+h2{font-size:17px;margin:0 0 12px}
+.row{display:grid;grid-template-columns:110px 1fr 70px;gap:8px;align-items:center;margin:8px 0;font-size:13px}
+.row span{overflow:hidden;text-overflow:ellipsis}.row b{text-align:right;font-size:12px}
+.track{height:14px;background:var(--yl2);border-radius:9px;overflow:hidden}
+.track i{display:block;height:100%;width:0;border-radius:9px;background:linear-gradient(90deg,var(--pk),var(--yl));transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.donutbox{display:flex;gap:18px;align-items:center;flex-wrap:wrap;justify-content:center}
+.donut{width:150px;height:150px;border-radius:50%;position:relative;box-shadow:0 4px 14px rgba(0,0,0,.08)}
+.donut:after{content:"";position:absolute;inset:32px;background:#fff;border-radius:50%}
+.leg div{font-size:13px;margin:4px 0}.leg i{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:6px;vertical-align:middle}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td,th{padding:9px 6px;text-align:left;border-bottom:1px solid var(--pk2)}th{color:#8a7480;font-weight:600}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:0 14px}
+#loading,#empty{text-align:center;padding:40px}
+.hide{display:none}
+@keyframes pop{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes float{50%{transform:translateY(-6px) rotate(-4deg)}}
+@media(max-width:480px){.row{grid-template-columns:90px 1fr 60px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head>
+<body><div class="wrap">
+<div class="hero"><div class="ic">📊</div><h1>Hasil <?= judul ?></h1>
+<p id="upd">Memuat data terbaru...</p>
+<div class="btns"><a class="nav" href="<?= baseUrl ?>" target="_top">📝 Isi Survei</a>
+<button class="nav" onclick="muat()">🔄 Muat Ulang Data</button></div></div>
+<div id="loading">⏳ Mengambil data dari Spreadsheet...</div>
+<div id="empty" class="hide card">Belum ada responden. Jadilah yang pertama mengisi survei 💖</div>
+<div id="out" class="hide"></div>
+</div>
+
+<script>
+const WARNA=["#ff9ec4","#ffe27a","#ffb7d5","#ffd166","#f8a5c2","#fff09e","#e58fb0","#ffc8dd"];
+const SEK=[["brand","🏷️ Brand paling banyak dipakai"],["jenis","🧥 Jenis jaket terpopuler","donut"],
+["alasan","💭 Alasan memilih brand"],["harga","💸 Rentang harga"],["faktor","⭐ Fitur yang dianggap penting"],
+["tempat","🛍️ Tempat membeli"],["pakai","📅 Seberapa sering dipakai"],["beli","🧾 Frekuensi beli jaket baru"],
+["lama","⏳ Lama memiliki jaket"],["beliLagiBrand","🔁 Brand yang ingin dibeli lagi (jawab: Ya, pasti)"]];
+const JUARA=[["brand","Brand terpopuler"],["jenis","Jenis terpopuler"],["alasan","Alasan utama"],["harga","Harga terbanyak"],
+["faktor","Fitur terpenting"],["tempat","Tempat beli favorit"],["beliLagiBrand","Paling ingin dibeli lagi"]];
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+
+function bars(list){
+ return list.slice(0,8).map(x=>`<div class="row"><span title="${esc(x.label)}">${esc(x.label)}</span><div class="track"><i data-w="${x.persen}"></i></div><b>${x.jumlah} (${x.persen}%)</b></div>`).join("")||"<small>Belum ada data</small>";
+}
+function donut(list){
+ const tot=list.reduce((a,x)=>a+x.jumlah,0);let acc=0;
+ const seg=list.map((x,i)=>{const s=acc/tot*100;acc+=x.jumlah;return `${WARNA[i%8]} ${s}% ${acc/tot*100}%`;}).join(",");
+ return `<div class="donutbox"><div class="donut" style="background:conic-gradient(${seg})"></div><div class="leg">${
+ list.map((x,i)=>`<div><i style="background:${WARNA[i%8]}"></i>${esc(x.label)} - ${x.jumlah}</div>`).join("")}</div></div>`;
+}
+function render(s){
+ let h=`<div class="grid">
+ <div class="stat"><small>👥 Responden</small><b>${s.total}</b></div>
+ <div class="stat"><small>😍 Rata-rata kepuasan</small><b>${s.rataKepuasan} / 5</b></div>
+ <div class="stat"><small>📅 Rata-rata pemakaian</small><b style="font-size:16px">${esc(s.labelPakai)}</b><small>skor ${s.rataPakai} / 5</small></div>
+ <div class="stat"><small>🔁 Pasti beli lagi</small><b>${s.persenBeliLagi}%</b></div></div>
+ <div class="grid">${JUARA.filter(j=>s[j[0]].length).map((j,i)=>`<div class="stat win" style="animation-delay:${i*.06}s"><small>🏆 ${j[1]}</small><b>${esc(s[j[0]][0].label)}</b><small>${s[j[0]][0].jumlah} orang</small></div>`).join("")}</div>
+ <div class="two">`;
+ SEK.forEach(x=>{h+=`<div class="card"><h2>${x[1]}</h2>${x[2]=="donut"?donut(s[x[0]]):bars(s[x[0]])}</div>`;});
+ h+=`</div><div class="card"><h2>😍 Sebaran tingkat kepuasan</h2>`;
+ const dist=[5,4,3,2,1].map(n=>{return {label:"★".repeat(n),n:n};});
+ h+=`<small>Rata-rata ${s.rataKepuasan} dari 5</small>
+ <div class="track" style="height:22px;margin:10px 0"><i data-w="${s.rataKepuasan/5*100}"></i></div></div>
+ <div class="card"><h2>📋 Kepuasan per brand</h2><table><tr><th>Brand</th><th>Responden</th><th>Rata-rata</th></tr>${
+ s.brandPuas.map(b=>`<tr><td>${esc(b.label)}</td><td>${b.jumlah}</td><td>${"★".repeat(Math.round(b.rata))} ${b.rata}</td></tr>`).join("")}</table></div>`;
+ const out=document.getElementById("out");out.innerHTML=h;out.classList.remove("hide");
+ setTimeout(()=>out.querySelectorAll("[data-w]").forEach(e=>e.style.width=e.dataset.w+"%"),80);
+}
+function muat(){
+ document.getElementById("loading").classList.remove("hide");
+ google.script.run
+  .withSuccessHandler(s=>{
+   document.getElementById("loading").classList.add("hide");
+   if(!s.total){document.getElementById("empty").classList.remove("hide");document.getElementById("out").classList.add("hide");document.getElementById("upd").textContent="Belum ada data";return;}
+   document.getElementById("empty").classList.add("hide");
+   document.getElementById("upd").textContent="Diperbarui: "+s.diperbarui;render(s);})
+  .withFailureHandler(e=>{document.getElementById("loading").textContent="Gagal memuat: "+e.message;})
+  .ambilStatistik();
+}
+muat();
+</script></body></html>
